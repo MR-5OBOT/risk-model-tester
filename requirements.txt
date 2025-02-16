@@ -1,0 +1,6 @@
+matplotlib
+customtkinter
+# pyinstaller
+# kivy
+# kivy-examples
+
