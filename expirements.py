@@ -5,42 +5,9 @@ import matplotlib.pyplot as plt
 
 logging.basicConfig(level=logging.INFO)  # Set logging level
 
-# User inputs
-# max_overall_drawdown = float(input("Enter max overall drawdown (e.g., 0.10 for 10%): "))
-# profit_target = float(input("Enter profit target (e.g., 0.10 for 10%): "))
-# risk_per_trade = float(input("Enter risk per trade (e.g., 0.01 for 1%): "))
-#
-# win_rate = float(input("Enter win rate (e.g., 0.60 for 60%): "))
-# reward_to_risk = float(input("Enter reward to risk ratio (e.g., 2.0 for 2:1): "))
-# trades_to_pass = int(input("Enter number of trades needed to pass: "))
 
-# increase_input = input("increase risk after x% :")
-# increase_input = float(increase_input)
-# increase_check = initial_balance * (increase_input / 100) + initial_balance
-#
-# derease_input = input("decrease risk after x% :")
-# derease_input = float(derease_input)
-# increase_check = initial_balance * (1 - derease_input / 100)
-# decrease_check = initial_balance * 0.98
-
-# Paramepers
-initial_balance = 50000
-profit_target = 0.06
-max_overall_drawdown = 0.06
-risk_per_trade = 0.01
-win_rate = 0.2
-reward_to_risk = 2.0
-trades_to_pass = 20
-
-# the model risk controllers
-increase_risk = 0.02
-increase_check = initial_balance * 1.03
-decrease_risk = 0.005
-decrease_check = initial_balance * 0.99
-
-
-# function to control risk dynamiclly
-def risk_reducer(virtual_balance, current_risk):
+# Function to control risk dynamically
+def risk_reducer(virtual_balance, current_risk, increase_check, increase_risk, decrease_check, decrease_risk):
     if virtual_balance >= increase_check:
         return increase_risk
     elif virtual_balance <= decrease_check:
@@ -49,31 +16,24 @@ def risk_reducer(virtual_balance, current_risk):
         return current_risk
 
 
-def calculate_drawdown(peak, balance):
-    """Calculate the current drawdown based on the peak balance."""
-
-
-# models simulations
+# Models simulations
 def run_simulation():
     try:
         num_simulations = 10
         results = []
+        worst_drawdown_all_sims = 0  # outside the loop to track it well
+
         for sim in range(num_simulations):
             logging.info(f"Starting simulation {sim + 1}")
             virtual_balance = initial_balance
             current_risk = risk_per_trade
+            simulation_data = {"balances": [virtual_balance], "risks": [current_risk], "drawdowns": [0]}
             sim_max_drawdown = 0
-            simulation_data = {
-                "balances": [virtual_balance],
-                "risks": [current_risk],
-                "drawdowns": [0],
-            }
-            # Initialize a flag for target & max dd
             condition_met = False
             peak = initial_balance
 
             for trade in range(trades_to_pass):
-                current_risk = risk_reducer(virtual_balance, current_risk)
+                current_risk = risk_reducer(virtual_balance, current_risk, increase_check, increase_risk, decrease_check, decrease_risk)
                 risk_amount = current_risk * initial_balance
 
                 # Simulate trade outcome
@@ -85,17 +45,15 @@ def run_simulation():
                 # Track drawdowns
                 if virtual_balance > peak:
                     peak = virtual_balance  # Update peak if a new high is reached
-
-                # Track drawdowns
                 current_drawdown = (peak - virtual_balance) / peak if peak > 0 else 0
                 sim_max_drawdown = max(sim_max_drawdown, current_drawdown)
 
                 # Check for violations
                 if virtual_balance >= initial_balance * (1 + profit_target) and not condition_met:
-                    logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [{profit_target *100:.0f}% Target reached]")
+                    logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [Target reached]")
                     condition_met = True
-                if sim_max_drawdown >= max_overall_drawdown * initial_balance and not condition_met:
-                    logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [{max_overall_drawdown *100:.0f}% Max DD reached]")
+                if sim_max_drawdown >= max_overall_drawdown and not condition_met:
+                    logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [Max DD reached]")
                     condition_met = True
 
                 # Log the balance and drawdown for each trade
@@ -104,21 +62,15 @@ def run_simulation():
                 # Store simulation data
                 simulation_data["balances"].append(virtual_balance)
                 simulation_data["risks"].append(current_risk)
-                simulation_data["drawdowns"].append(sim_max_drawdown)
+                simulation_data["drawdowns"].append(current_drawdown)
+
+            # logging.info(f"[Worst drawdown sim: {sim + 1}]: {sim_max_drawdown * 100:.2f}%")
+            worst_drawdown_all_sims = max(worst_drawdown_all_sims, sim_max_drawdown)
 
             results.append(simulation_data)
-            logging.info(f"Ending simulation {sim + 1}")
 
-            # worst dd value
-            worst_dd_all_sims = max(simulation_data["drawdowns"])
-
-            # loggings
-            logging.info(f"[Sim {sim}] final balance: {virtual_balance}")
-            logging.info(f"[Sim {sim}] current_risk: {current_risk * 100:.2f}%")
-            logging.info(f"[Sim {sim}] max_drawdown: {sim_max_drawdown * 100:.2f}%")
-
-            # logging.info(f"[sim {sim+1}] drawdowns: {simulation_data['drawdowns']}")
-            logging.info(f"[all sims] worst drawdown: {worst_dd_all_sims * 100:.2f}%")
+        # Log the worst drawdown across all simulations
+        logging.info(f"[All Sims] Worst drawdown: {worst_drawdown_all_sims * 100:.2f}%")
 
         return results
 
@@ -179,8 +131,26 @@ def plotting(results):
     plt.savefig("risk_model_performance.png")  # Save the figure
     plt.show()
 
- # run the programe
+
+# Example usage
 if __name__ == "__main__":
-    run_simulation()
+    initial_balance = 50000
+    profit_target = 0.06
+    max_overall_drawdown = 0.06
+    risk_per_trade = 0.01
+    win_rate = 0.55
+    reward_to_risk = 2.0
+    trades_to_pass = 20
+
+    # the model risk controllers
+    increase_risk = 0.02
+    increase_check = initial_balance * 1.03
+    decrease_risk = 0.005
+    decrease_check = initial_balance * 0.99
+
     results = run_simulation()
-    plotting(results)
+
+    if results:
+        plotting(results)
+    else:
+        logging.error("No results to plot.")
