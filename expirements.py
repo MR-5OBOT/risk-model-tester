@@ -135,8 +135,8 @@ def plotting(results):
 # Example usage
 if __name__ == "__main__":
     initial_balance = 50000
-    profit_target = 0.06
-    max_overall_drawdown = 0.06
+    profit_target = 0.08
+    max_overall_drawdown = 0.08
     risk_per_trade = 0.01
     win_rate = 0.55
     reward_to_risk = 2.0
