@@ -2,6 +2,7 @@ import logging
 import random
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 logging.basicConfig(level=logging.INFO)  # Set logging level
 
@@ -27,7 +28,11 @@ def run_simulation():
             logging.info(f"Starting simulation {sim + 1}")
             virtual_balance = initial_balance
             current_risk = risk_per_trade
-            simulation_data = {"balances": [virtual_balance], "risks": [current_risk], "drawdowns": [0]}
+            simulation_data = {
+                "balances": [virtual_balance],
+                "risks": [current_risk],
+                "drawdowns": [0],
+            }
             sim_max_drawdown = 0
             condition_met = False
             peak = initial_balance
@@ -50,14 +55,14 @@ def run_simulation():
 
                 # Check for violations
                 if virtual_balance >= initial_balance * (1 + profit_target) and not condition_met:
-                    logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [Target reached]")
+                    # logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [Target reached]")
                     condition_met = True
                 if sim_max_drawdown >= max_overall_drawdown and not condition_met:
-                    logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [Max DD reached]")
+                    # logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [Max DD reached]")
                     condition_met = True
 
                 # Log the balance and drawdown for each trade
-                logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}%")
+                # logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}%")
 
                 # Store simulation data
                 simulation_data["balances"].append(virtual_balance)
@@ -79,31 +84,20 @@ def run_simulation():
 
 
 def plotting(results):
-    logging.info("Plotting the graph")
     plt.style.use("dark_background")
     plt.figure(figsize=(8, 6))
     ax = plt.gca()  # Get the current axis
     ax.set_title("Risk Model Performance", color="grey", fontsize=20, loc="center", pad=15)
-    ax.set_xlabel("Trade Number", color="grey", fontsize=12)
-    ax.set_ylabel("Balance", color="grey", fontsize=12)
+    ax.set_xlabel("Trade Number", color="grey", fontsize=10)
+    ax.set_ylabel("Balance", color="grey", fontsize=10)
 
     # plot balances
     for sim, data in enumerate(results):
         # ax.plot(data["balances"], label=f"Sim {sim + 1}")
-        ax.plot(data["balances"])
+        sns.lineplot(data["balances"])
 
-    ax.axhline(
-        initial_balance * (1 + profit_target),
-        color="green",
-        linestyle="--",
-        label="Profit Target",
-    )
-    ax.axhline(
-        initial_balance * (1 - max_overall_drawdown),
-        color="red",
-        linestyle="--",
-        label="Max Drawdown",
-    )
+    ax.axhline(initial_balance * (1 + profit_target), color="green", linestyle="--", label="Profit Target")
+    ax.axhline(initial_balance * (1 - max_overall_drawdown), color="red", linestyle="--", label="Max Drawdown")
     # Customize spines and ticks
     ax.spines["right"].set_visible(False)
     ax.spines["top"].set_visible(False)
@@ -128,7 +122,7 @@ def plotting(results):
     )
     # Finalize plot
     ax.legend()
-    plt.savefig("risk_model_performance.png")  # Save the figure
+    plt.savefig("risk_model_performance.png")
     plt.show()
 
 
