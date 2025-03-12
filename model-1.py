@@ -7,6 +7,32 @@ import seaborn as sns
 logging.basicConfig(level=logging.INFO)  # Set logging level
 
 
+# initial_balance = 50000
+# profit_target = 0.06
+# max_overall_drawdown = 0.06
+# risk_per_trade = 0.01
+# win_rate = 0.55
+# reward_to_risk = 2.0
+# trades_to_pass = 20
+# # the model risk controllers
+# increase_risk = 0.02
+# increase_check = initial_balance * 1.03
+# decrease_risk = 0.005
+# decrease_check = initial_balance * 0.99
+
+initial_balance = float(input("Enter initial balance: "))
+risk_per_trade = float(input("Enter risk per trade (e.g., 0.01 for 1%): "))
+win_rate = float(input("Enter win rate (e.g., 0.55 for 55%): "))
+reward_to_risk = float(input("Enter reward-to-risk ratio (e.g., 2.0): "))
+profit_target = float(input("Enter profit target (e.g., 0.06 for 6%): "))
+max_overall_drawdown = float(input("Enter max overall drawdown (e.g., 0.06 for 6%): "))
+trades_to_pass = int(input("Enter number of trades to simulate: "))
+increase_risk = float(input("Enter increased risk (e.g., 0.02 for 2%): "))
+increase_check = float(input("Enter increase check percentage (e.g., 0.03 for 3%): "))
+decrease_risk = float(input("Enter decreased risk (e.g., 0.005 for 0.5%): "))
+decrease_check = float(input("Enter decrease check percentage (e.g., 0.01 for 1%): "))
+
+
 # Function to control risk dynamically
 def risk_reducer(virtual_balance, current_risk, increase_check, increase_risk, decrease_check, decrease_risk):
     if virtual_balance >= increase_check:
@@ -141,31 +167,6 @@ def plotting(results):
 
 # Example usage
 if __name__ == "__main__":
-    # initial_balance = 50000
-    # profit_target = 0.06
-    # max_overall_drawdown = 0.06
-    # risk_per_trade = 0.01
-    # win_rate = 0.55
-    # reward_to_risk = 2.0
-    # trades_to_pass = 20
-    # # the model risk controllers
-    # increase_risk = 0.02
-    # increase_check = initial_balance * 1.03
-    # decrease_risk = 0.005
-    # decrease_check = initial_balance * 0.99
-
-    initial_balance = float(input("Enter initial balance: "))
-    risk_per_trade = float(input("Enter risk per trade (as a decimal, e.g., 0.01 for 1%): "))
-    win_rate = float(input("Enter win rate (as a decimal, e.g., 0.55 for 55%): "))
-    reward_to_risk = float(input("Enter reward-to-risk ratio (e.g., 2.0): "))
-    profit_target = float(input("Enter profit target (as a decimal, e.g., 0.06 for 6%): "))
-    max_overall_drawdown = float(input("Enter max overall drawdown (as a decimal, e.g., 0.06 for 6%): "))
-    trades_to_pass = int(input("Enter number of trades to simulate: "))
-    increase_risk = float(input("Enter increased risk (as a decimal, e.g., 0.02 for 2%): "))
-    increase_check = float(input("Enter increase check percentage (e.g., 0.03 for 3%): "))
-    decrease_risk = float(input("Enter decreased risk (as a decimal, e.g., 0.005 for 0.5%): "))
-    decrease_check = float(input("Enter decrease check percentage (e.g., 0.01 for 1%): "))
-
     results = run_simulation()
     if results:
         plotting(results)
