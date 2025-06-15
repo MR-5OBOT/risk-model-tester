@@ -1,40 +1,51 @@
 import logging
 import random
 
+import matplotlib
+
+matplotlib.use("TkAgg")  # Add this at the top of your script
+
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 logging.basicConfig(level=logging.INFO)  # Set logging level
 
 
-# initial_balance = 50000
-# profit_target = 0.06
-# max_overall_drawdown = 0.06
-# risk_per_trade = 0.01
-# win_rate = 0.55
-# reward_to_risk = 2.0
-# trades_to_pass = 20
-# # the model risk controllers
-# increase_risk = 0.02
-# increase_check = initial_balance * 1.03
-# decrease_risk = 0.005
-# decrease_check = initial_balance * 0.99
+initial_balance = 15000
+profit_target = 0.1
+max_overall_drawdown = 0.06
+risk_per_trade = 0.01
+win_rate = 0.55
+reward_to_risk = 1.5
+trades_to_pass = 5
+# the model risk controllers
+increase_risk = 0.03
+increase_check = initial_balance * 1.03
+decrease_risk = 0.005
+decrease_check = initial_balance * 0.98
 
-initial_balance = float(input("Enter initial balance: "))
-risk_per_trade = float(input("Enter risk per trade (e.g., 0.01 for 1%): "))
-win_rate = float(input("Enter win rate (e.g., 0.55 for 55%): "))
-reward_to_risk = float(input("Enter reward-to-risk ratio (e.g., 2.0): "))
-profit_target = float(input("Enter profit target (e.g., 0.06 for 6%): "))
-max_overall_drawdown = float(input("Enter max overall drawdown (e.g., 0.06 for 6%): "))
-trades_to_pass = int(input("Enter number of trades to simulate: "))
-increase_risk = float(input("Enter increased risk (e.g., 0.02 for 2%): "))
-increase_check = float(input("Enter increase check percentage (e.g., 0.03 for 3%): "))
-decrease_risk = float(input("Enter decreased risk (e.g., 0.005 for 0.5%): "))
-decrease_check = float(input("Enter decrease check percentage (e.g., 0.01 for 1%): "))
+# initial_balance = float(input("Enter initial balance: "))
+# risk_per_trade = float(input("Enter risk per trade (e.g., 0.01 for 1%): "))
+# win_rate = float(input("Enter win rate (e.g., 0.55 for 55%): "))
+# reward_to_risk = float(input("Enter reward-to-risk ratio (e.g., 2.0): "))
+# profit_target = float(input("Enter profit target (e.g., 0.06 for 6%): "))
+# max_overall_drawdown = float(input("Enter max overall drawdown (e.g., 0.06 for 6%): "))
+# trades_to_pass = int(input("Enter number of trades to simulate: "))
+# increase_risk = float(input("Enter increased risk (e.g., 0.02 for 2%): "))
+# increase_check = float(input("Enter increase check percentage (e.g., 0.03 for 3%): "))
+# decrease_risk = float(input("Enter decreased risk (e.g., 0.005 for 0.5%): "))
+# decrease_check = float(input("Enter decrease check percentage (e.g., 0.01 for 1%): "))
+#
 
 
 # Function to control risk dynamically
-def risk_reducer(virtual_balance, current_risk, increase_check, increase_risk, decrease_check, decrease_risk):
+def risk_reducer(
+    virtual_balance,
+    current_risk,
+    increase_check,
+    increase_risk,
+    decrease_check,
+    decrease_risk,
+):
     if virtual_balance >= increase_check:
         return increase_risk
     elif virtual_balance <= decrease_check:
@@ -54,14 +65,23 @@ def run_simulation():
             logging.info(f"Starting simulation {sim + 1}")
             virtual_balance = initial_balance
             current_risk = risk_per_trade
-            simulation_data = {"balances": [virtual_balance], "risks": [current_risk], "drawdowns": [0]}
+            simulation_data = {
+                "balances": [virtual_balance],
+                "risks": [current_risk],
+                "drawdowns": [0],
+            }
             sim_max_drawdown = 0
             condition_met = False
             peak = initial_balance
 
             for trade in range(trades_to_pass):
                 current_risk = risk_reducer(
-                    virtual_balance, current_risk, increase_check, increase_risk, decrease_check, decrease_risk
+                    virtual_balance,
+                    current_risk,
+                    increase_check,
+                    increase_risk,
+                    decrease_check,
+                    decrease_risk,
                 )
                 risk_amount = current_risk * initial_balance
 
@@ -78,19 +98,24 @@ def run_simulation():
                 sim_max_drawdown = max(sim_max_drawdown, current_drawdown)
 
                 # Check for violations
-                if virtual_balance >= initial_balance * (1 + profit_target) and not condition_met:
-                    logging.info(
-                        f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [Target reached]"
-                    )
+                if (
+                    virtual_balance >= initial_balance * (1 + profit_target)
+                    and not condition_met
+                ):
+                    # logging.info(
+                    #     f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [Target reached]"
+                    # )
                     condition_met = True
                 if sim_max_drawdown >= max_overall_drawdown and not condition_met:
-                    logging.info(
-                        f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [Max DD reached]"
-                    )
+                    # logging.info(
+                    #     f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}% [Max DD reached]"
+                    # )
                     condition_met = True
 
                 # Log the balance and drawdown for each trade
-                logging.info(f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}%")
+                # logging.info(
+                #     f"Trade {trade + 1} - Balance: {virtual_balance:.2f}, Drawdown: {current_drawdown * 100:.2f}%"
+                # )
 
                 # Store simulation data
                 simulation_data["balances"].append(virtual_balance)
@@ -116,7 +141,9 @@ def plotting(results):
     plt.style.use("dark_background")
     plt.figure(figsize=(8, 6))
     ax = plt.gca()  # Get the current axis
-    ax.set_title("Risk Model Performance", color="grey", fontsize=20, loc="center", pad=15)
+    ax.set_title(
+        "Risk Model Performance", color="grey", fontsize=20, loc="center", pad=15
+    )
     ax.set_xlabel("Trade Number", color="grey", fontsize=12)
     ax.set_ylabel("Balance", color="grey", fontsize=12)
 
